@@ -1,144 +1,126 @@
 import numpy as np
-from scipy.optimize import minimize, LinearConstraint
-from scipy.sparse.linalg import LinearOperator, cg  # Conjugate gradient solver
-
-def sigmoid(z):
-    # Clip z to avoid overflow in the exponential function when z is very large or very small
-    z = np.clip(z, -500, 500)
-    return 1 / (1 + np.exp(-z))
-
 
 class LogisticRegression:
-    def __init__(self, penalty='l2', C=1.0, fit_intercept=True, intercept_scaling=1,
-                 solver='lbfgs', max_iter=100, multi_class='auto', tol=1e-4, random_state=None, l1_ratio=None):
-        self.penalty = penalty
-        self.C = C
-        self.fit_intercept = fit_intercept
-        self.intercept_scaling = intercept_scaling
-        self.solver = solver
+    def __init__(self, learning_rate=0.01, max_iter=1000, tol=1e-4):
+        self.learning_rate = learning_rate
         self.max_iter = max_iter
-        self.multi_class = multi_class
         self.tol = tol
-        self.random_state = random_state
-        self.l1_ratio = l1_ratio
-        self.coef_ = None
-        self.intercept_ = None
-
-    def _add_intercept(self, X):
-        intercept = np.ones((X.shape[0], 1)) * self.intercept_scaling
-        return np.hstack((intercept, X))
-
-    def _logistic_loss(self, w, X, y):
-        m = len(y)
-        z = X.dot(w)
-        log_likelihood = -np.sum(np.log(1 + np.exp(-y * z)))
-        grad = X.T.dot(y * (1 - 1 / (1 + np.exp(-y * z)))) / m
-
-        if self.penalty == 'l2':
-            log_likelihood -= 0.5 * self.C * np.sum(w ** 2)
-            grad -= self.C * w
-        elif self.penalty == 'l1':
-            log_likelihood -= self.C * np.sum(np.abs(w))
-        elif self.penalty == 'elasticnet':
-            l1 = self.C * self.l1_ratio
-            l2 = self.C * (1 - self.l1_ratio)
-            log_likelihood -= l1 * np.sum(np.abs(w)) + 0.5 * l2 * np.sum(w ** 2)
-            grad -= l1 * np.sign(w) + l2 * w
-
-        return log_likelihood, grad
+        self.weights = None
+        self.bias = None
 
     def fit(self, X, y):
-        if self.fit_intercept:
-            X = np.hstack([np.ones((X.shape[0], 1)) * self.intercept_scaling, X])
+        num_samples, num_features = X.shape
+        self.weights = np.zeros(num_features)
+        self.bias = 0
 
-        options = {'maxiter': self.max_iter, 'disp': False}
-        initial_coef = np.zeros(X.shape[1])
-
-        if self.solver == 'lbfgs':
-            result = minimize(lambda w: self._logistic_loss(w, X, y), initial_coef, method='L-BFGS-B', jac=True, options=options)
-        elif self.solver == 'newton-cg':
-            def Hessian(w):
-                Xw = X.dot(w)
-                s = 1 / (1 + np.exp(-Xw))
-                R = np.diag(s * (1 - s))
-                return X.T.dot(R).dot(X)
+        for _ in range(self.max_iter):
+            linear_model = np.dot(X, self.weights) + self.bias
+            y_pred = self._sigmoid(linear_model)
             
-            result = minimize(lambda w: self._logistic_loss(w, X, y), initial_coef, method='Newton-CG',
-                              jac=True, hess=Hessian, options=options)
-        # Implement more solvers like 'liblinear' and 'saga'
+            dw = (1 / num_samples) * np.dot(X.T, (y_pred - y))
+            db = (1 / num_samples) * np.sum(y_pred - y)
+            
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
 
-        if self.fit_intercept:
-            self.intercept_ = result.x[0]
-            self.coef_ = result.x[1:]
-        else:
-            self.coef_ = result.x
-
-        return self
+            if np.linalg.norm(dw) < self.tol and np.abs(db) < self.tol:
+                break
 
     def predict_proba(self, X):
-        if self.fit_intercept:
-            X = self._add_intercept(X)
-        z = np.dot(X, np.hstack([self.intercept_, self.coef_]))
-        proba = 1 / (1 + np.exp(-z))
-        return np.vstack([1 - proba, proba]).T
+        linear_model = np.dot(X, self.weights) + self.bias
+        return self._sigmoid(linear_model)
 
     def predict(self, X):
-        proba = self.predict_proba(X)
-        return np.argmax(proba, axis=1)
+        y_pred_proba = self.predict_proba(X)
+        return (y_pred_proba >= 0.5).astype(int)
 
     def score(self, X, y):
-        predictions = self.predict(X)
-        return np.mean(predictions == y)
-    
+        y_pred = self.predict(X)
+        return np.mean(y_pred == y)
 
+    def _sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
 
-
-import numpy as np
-from sklearn.datasets import make_classification, make_multilabel_classification
+# Testing the implementation
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression as SklearnLogisticRegression
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 
-# Assuming CustomLogisticRegression is defined as per the previous implementation details
-# from your_module import CustomLogisticRegression
+def test():
+    # Load the Iris dataset
+    data = load_iris()
+    X, y = data.data, (data.target == 2).astype(int)  # Binary classification (class 2 vs. others)
 
-def test_logistic_regression(custom_model, sklearn_model, X, y):
+    # Standardize the features
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
 
-    # Fit the custom model
-    custom_model.fit(X_train, y_train)
-    custom_predictions = custom_model.predict(X_test)
-    custom_accuracy = accuracy_score(y_test, custom_predictions)
+    # Initialize and train our Logistic Regression
+    lr = LogisticRegression(learning_rate=0.01, max_iter=1000)
+    lr.fit(X_train, y_train)
 
-    # Fit the sklearn model
-    sklearn_model.fit(X_train, y_train)
-    sklearn_predictions = sklearn_model.predict(X_test)
-    sklearn_accuracy = accuracy_score(y_test, sklearn_predictions)
+    # Predictions and evaluation
+    y_pred = lr.predict(X_test)
+    accuracy = lr.score(X_test, y_test)
+    print(f"Custom Logistic Regression Accuracy: {accuracy:.4f}")
 
-    print("Custom Model Accuracy:", custom_accuracy)
-    print("Sklearn Model Accuracy:", sklearn_accuracy)
-    print("---" * 10)
-
-# Test case 1: Binary classification
-X, y = make_classification(n_samples=1000, n_features=20, n_classes=2, random_state=42)
-custom_model = LogisticRegression(penalty='l2', C=1.0, solver='lbfgs')
-sklearn_model = SklearnLogisticRegression(penalty='l2', C=1.0, solver='lbfgs')
-print("Binary Classification Test:")
-test_logistic_regression(custom_model, sklearn_model, X, y)
-
-# Test case 2: Multiclass classification
-X, y = make_classification(n_samples=1000, n_features=20, n_classes=3, n_informative=4, random_state=42)
-custom_model = LogisticRegression(penalty='l2', C=1.0, solver='lbfgs', multi_class='ovr')
-sklearn_model = SklearnLogisticRegression(penalty='l2', C=1.0, solver='lbfgs', multi_class='ovr')
-print("Multiclass Classification Test:")
-test_logistic_regression(custom_model, sklearn_model, X, y)
-
-# Test case 3: Regularization effects with L1 penalty
-X, y = make_classification(n_samples=1000, n_features=20, n_informative=5, random_state=42)
-custom_model = LogisticRegression(penalty='l1', C=0.5, solver='saga')  # Assuming 'saga' is implemented
-sklearn_model = SklearnLogisticRegression(penalty='l1', C=0.5, solver='saga')
-print("L1 Regularization Test:")
-test_logistic_regression(custom_model, sklearn_model, X, y)
+    # Compare with Scikit-Learn's Logistic Regression
+    sklearn_lr = SklearnLogisticRegression()
+    sklearn_lr.fit(X_train, y_train)
+    y_pred_sklearn = sklearn_lr.predict(X_test)
+    accuracy_sklearn = accuracy_score(y_test, y_pred_sklearn)
+    print(f"Scikit-Learn Logistic Regression Accuracy: {accuracy_sklearn:.4f}")
 
 
+test()
+from sklearn.datasets import load_breast_cancer
+from sklearn.metrics import  precision_score, recall_score, f1_score
+
+def test2():
+        
+    # Load the Breast Cancer Wisconsin dataset
+    data = load_breast_cancer()
+    X, y = data.data, data.target
+
+    # Standardize the features
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
+
+    # Initialize and train our Logistic Regression
+    lr = LogisticRegression(learning_rate=0.01, max_iter=1000)
+    lr.fit(X_train, y_train)
+
+    # Predictions and evaluation
+    y_pred = lr.predict(X_test)
+    accuracy = lr.score(X_test, y_test)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    print(f"Custom Logistic Regression Accuracy on Breast Cancer dataset: {accuracy:.4f}")
+    print(f"Custom Logistic Regression Precision: {precision:.4f}")
+    print(f"Custom Logistic Regression Recall: {recall:.4f}")
+    print(f"Custom Logistic Regression F1 Score: {f1:.4f}")
+
+    # Compare with Scikit-Learn's Logistic Regression
+    sklearn_lr = SklearnLogisticRegression(max_iter=1000)
+    sklearn_lr.fit(X_train, y_train)
+    y_pred_sklearn = sklearn_lr.predict(X_test)
+    accuracy_sklearn = accuracy_score(y_test, y_pred_sklearn)
+    precision_sklearn = precision_score(y_test, y_pred_sklearn)
+    recall_sklearn = recall_score(y_test, y_pred_sklearn)
+    f1_sklearn = f1_score(y_test, y_pred_sklearn)
+    print(f"Scikit-Learn Logistic Regression Accuracy on Breast Cancer dataset: {accuracy_sklearn:.4f}")
+    print(f"Scikit-Learn Logistic Regression Precision: {precision_sklearn:.4f}")
+    print(f"Scikit-Learn Logistic Regression Recall: {recall_sklearn:.4f}")
+    print(f"Scikit-Learn Logistic Regression F1 Score: {f1_sklearn:.4f}")   
+    
+    
+test2()
