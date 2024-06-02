@@ -1,5 +1,3 @@
-# supervised_learning/mlp_classifier/mlp_classifier.py
-
 import numpy as np
 
 class MLPClassifier:

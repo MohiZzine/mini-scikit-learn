@@ -1,6 +1,3 @@
-
-# Testing the DecisionTreeRegressor
-
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
