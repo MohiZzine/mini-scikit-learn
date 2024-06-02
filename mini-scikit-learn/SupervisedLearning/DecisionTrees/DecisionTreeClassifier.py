@@ -1,18 +1,25 @@
 import numpy as np
 
 class DecisionTreeClassifier:
-    def __init__(self, criterion='gini', max_depth=None, min_samples_split=2, min_samples_leaf=1):
+    def __init__(self, criterion='gini', max_depth=None, min_samples_split=2, min_samples_leaf=1, random_state=None):
         self.criterion = criterion
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
+        self.random_state = random_state
         self.tree_ = None
+        self.classes_ = None
 
     def fit(self, X, y):
+        self.classes_ = np.unique(y)
         self.tree_ = self._build_tree(X, y)
 
     def predict(self, X):
         return np.array([self._predict(inputs) for inputs in X])
+
+    def predict_proba(self, X):
+        class_counts = np.array([self._predict_proba(inputs) for inputs in X])
+        return class_counts / class_counts.sum(axis=1, keepdims=True)
 
     def score(self, X, y):
         predictions = self.predict(X)
@@ -87,6 +94,30 @@ class DecisionTreeClassifier:
                 node = node.right
         return node.value
 
+    def _predict_proba(self, inputs):
+        node = self.tree_
+        while node.left:
+            if inputs[node.feature_index] <= node.threshold:
+                node = node.left
+            else:
+                node = node.right
+        # Assuming a binary classification problem
+        return [1 if node.value == cls else 0 for cls in self.classes_]
+
+    def get_params(self, deep=True):
+        return {
+            "criterion": self.criterion,
+            "max_depth": self.max_depth,
+            "min_samples_split": self.min_samples_split,
+            "min_samples_leaf": self.min_samples_leaf,
+            "random_state": self.random_state
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            setattr(self, key, value)
+        return self
+
 class Node:
     def __init__(self, feature_index=None, threshold=None, left=None, right=None, *, value=None):
         self.feature_index = feature_index
@@ -94,3 +125,99 @@ class Node:
         self.left = left
         self.right = right
         self.value = value
+
+# Testing the DecisionTreeClassifier with additional datasets
+
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.tree import DecisionTreeClassifier as SklearnDecisionTreeClassifier
+
+def test():
+    # Load the Iris dataset
+    data = load_iris()
+    X, y = data.data, data.target
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Initialize and train our Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=3)
+    dt.fit(X_train, y_train)
+
+    # Predictions and evaluation
+    y_pred = dt.predict(X_test)
+    accuracy = dt.score(X_test, y_test)
+    print(f"Custom Decision Tree Classifier Accuracy: {accuracy:.4f}")
+
+    # Compare with Scikit-Learn's Decision Tree Classifier
+    sklearn_dt = SklearnDecisionTreeClassifier(max_depth=3)
+    sklearn_dt.fit(X_train, y_train)
+    y_pred_sklearn = sklearn_dt.predict(X_test)
+    accuracy_sklearn = accuracy_score(y_test, y_pred_sklearn)
+    print(f"Scikit-Learn Decision Tree Classifier Accuracy: {accuracy_sklearn:.4f}")
+
+def test2():
+    # Load the Wine dataset
+    data = load_wine()
+    X, y = data.data, data.target
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Initialize and train our Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=3)
+    dt.fit(X_train, y_train)
+
+    # Predictions and evaluation
+    y_pred = dt.predict(X_test)
+    accuracy = dt.score(X_test, y_test)
+    print(f"Custom Decision Tree Classifier Accuracy on Wine dataset: {accuracy:.4f}")
+
+    # Compare with Scikit-Learn's Decision Tree Classifier
+    sklearn_dt = SklearnDecisionTreeClassifier(max_depth=3)
+    sklearn_dt.fit(X_train, y_train)
+    y_pred_sklearn = sklearn_dt.predict(X_test)
+    accuracy_sklearn = accuracy_score(y_test, y_pred_sklearn)
+    print(f"Scikit-Learn Decision Tree Classifier Accuracy on Wine dataset: {accuracy_sklearn:.4f}")
+
+def test3():
+    # Load the Breast Cancer Wisconsin dataset
+    data = load_breast_cancer()
+    X, y = data.data, data.target
+
+    # Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Initialize and train our Decision Tree Classifier
+    dt = DecisionTreeClassifier(max_depth=5)
+    dt.fit(X_train, y_train)
+
+    # Predictions and evaluation
+    y_pred = dt.predict(X_test)
+    accuracy = dt.score(X_test, y_test)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    print(f"Custom Decision Tree Classifier Accuracy on Breast Cancer dataset: {accuracy:.4f}")
+    print(f"Custom Decision Tree Classifier Precision: {precision:.4f}")
+    print(f"Custom Decision Tree Classifier Recall: {recall:.4f}")
+    print(f"Custom Decision Tree Classifier F1 Score: {f1:.4f}")
+
+    # Compare with Scikit-Learn's Decision Tree Classifier
+    sklearn_dt = SklearnDecisionTreeClassifier(max_depth=5)
+    sklearn_dt.fit(X_train, y_train)
+    y_pred_sklearn = sklearn_dt.predict(X_test)
+    accuracy_sklearn = accuracy_score(y_test, y_pred_sklearn)
+    precision_sklearn = precision_score(y_test, y_pred_sklearn)
+    recall_sklearn = recall_score(y_test, y_pred_sklearn)
+    f1_sklearn = f1_score(y_test, y_pred_sklearn)
+    print(f"Scikit-Learn Decision Tree Classifier Accuracy on Breast Cancer dataset: {accuracy_sklearn:.4f}")
+    print(f"Scikit-Learn Decision Tree Classifier Precision: {precision_sklearn:.4f}")
+    print(f"Scikit-Learn Decision Tree Classifier Recall: {recall_sklearn:.4f}")
+    print(f"Scikit-Learn Decision Tree Classifier F1 Score: {f1_sklearn:.4f}")
+
+if __name__ == "__main__":
+    test()
+    test2()
+    test3()
