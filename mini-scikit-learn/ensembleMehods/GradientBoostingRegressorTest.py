@@ -1,4 +1,3 @@
-# test_gradient_boosting_regressor.py
 import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split

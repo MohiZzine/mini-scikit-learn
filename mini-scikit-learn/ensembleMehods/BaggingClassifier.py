@@ -1,15 +1,18 @@
 import numpy as np
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from SupervisedLearning.DecisionTrees.DecisionTreeClassifier import DecisionTreeClassifier
 from sklearn.base import clone
 from sklearn.utils import check_random_state
+from SupervisedLearning.DecisionTrees.DecisionTreeClassifier import DecisionTreeClassifier
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 
 class BaggingClassifier:
-    def __init__(self, estimator=None, n_estimators=10, max_samples=1.0, max_features=1.0, 
-                 bootstrap=True, bootstrap_features=False, oob_score=False, warm_start=False, 
+    def __init__(self, estimator=None, n_estimators=10, max_samples=1.0,
+                 max_features=1.0, bootstrap=True, bootstrap_features=False,
+                 oob_score=False, warm_start=False,
                  n_jobs=None, random_state=None, verbose=0):
         self.estimator = estimator if estimator is not None else DecisionTreeClassifier()
         self.n_estimators = n_estimators
@@ -43,7 +46,8 @@ class BaggingClassifier:
             return random_state.permutation(n_features)[:n_features]
 
     def fit(self, X, y):
-        """Build a Bagging ensemble of estimators from the training set (X, y)."""
+        """Build a Bagging ensemble of estimators
+        from the training set (X, y)."""
         n_samples, n_features = X.shape
         self.estimators_ = []
         self.estimators_samples_ = []
@@ -53,8 +57,10 @@ class BaggingClassifier:
         random_state = check_random_state(self.random_state)
         for i in range(self.n_estimators):
             estimator = clone(self.estimator)
-            sample_indices = self._generate_sample_indices(random_state, n_samples)
-            feature_indices = self._generate_feature_indices(random_state, n_features)
+            sample_indices = self._generate_sample_indices(random_state,
+                                                           n_samples)
+            feature_indices = self._generate_feature_indices(random_state,
+                                                             n_features)
             self.estimators_samples_.append(sample_indices)
             self.estimators_features_.append(feature_indices)
             X_sample = X[sample_indices][:, feature_indices]
@@ -77,7 +83,8 @@ class BaggingClassifier:
                 oob_predictions = estimator.predict(X[mask])
                 for i, pred in zip(np.where(mask)[0], oob_predictions):
                     predictions[i, self.classes_ == pred] += 1
-        self.oob_decision_function_ = predictions / np.sum(predictions, axis=1, keepdims=True)
+        self.oob_decision_function_ = predictions / \
+            np.sum(predictions, axis=1, keepdims=True)
         self.oob_score_ = np.mean(np.argmax(predictions, axis=1) == y)
 
     def predict(self, X):

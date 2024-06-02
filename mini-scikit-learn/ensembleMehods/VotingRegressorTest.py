@@ -1,4 +1,3 @@
-# test_voting_regressor.py
 import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.tree import DecisionTreeRegressor
@@ -14,7 +13,6 @@ X, y = load_diabetes(return_X_y=True)
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initialize the regressors
 ridge = Ridge()
 dt = DecisionTreeRegressor(random_state=42)
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
@@ -35,28 +33,15 @@ rf_preds = rf.predict(X_test)
 voting_preds = voting_regressor.predict(X_test)
 
 # Calculate MSE
-ridge_mse = mean_squared_error(y_test, ridge_preds)
-dt_mse = mean_squared_error(y_test, dt_preds)
-rf_mse = mean_squared_error(y_test, rf_preds)
 voting_mse = mean_squared_error(y_test, voting_preds)
 
 # Print the results
 print(f"Custom VotingRegressor MSE: {voting_mse:.4f}")
-print(f"Ridge MSE: {ridge_mse:.4f}")
-print(f"DecisionTreeRegressor MSE: {dt_mse:.4f}")
-print(f"RandomForestRegressor MSE: {rf_mse:.4f}")
-
 # Compare with sklearn's VotingRegressor
-
 from sklearn.ensemble import VotingRegressor as SklearnVotingRegressor
 
-# Initialize the sklearn VotingRegressor
 sklearn_voting_regressor = SklearnVotingRegressor(estimators=[('ridge', ridge), ('dt', dt), ('rf', rf)])
-
-# Fit the sklearn VotingRegressor
 sklearn_voting_regressor.fit(X_train, y_train)
-
-# Make predictions
 sklearn_voting_preds = sklearn_voting_regressor.predict(X_test)
 
 # Calculate MSE
