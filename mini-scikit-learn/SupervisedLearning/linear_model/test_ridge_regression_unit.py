@@ -1,11 +1,11 @@
 import unittest
 import numpy as np
-from linear_regression import LinearRegression
+from ridge_regression import RidgeRegression
 
 
-class TestLinearRegression(unittest.TestCase):
+class TestRidgeRegression(unittest.TestCase):
     def setUp(self):
-        self.model = LinearRegression()
+        self.model = RidgeRegression(alpha=1.0, fit_intercept=True, copy_X=True)
 
     def test_fit(self):
         # Simple linear relationship
@@ -22,8 +22,7 @@ class TestLinearRegression(unittest.TestCase):
         self.model.fit(X, y)
         predictions = self.model.predict(X)
         self.assertEqual(predictions.shape, (3,))
-        # Allowing small tolerance in the prediction
-        np.testing.assert_almost_equal(predictions, y, decimal=1)
+        np.testing.assert_almost_equal(predictions, y, decimal=0)
 
     def test_score(self):
         # Simple linear relationship
