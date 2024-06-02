@@ -3,8 +3,7 @@ from collections import Counter
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from DecisionTrees import *
-from DecisionTrees.DecisionTreeClassifier import DecisionTreeClassifier
+from SupervisedLearning.DecisionTrees.DecisionTreeClassifier import DecisionTreeClassifier
 
 class RandomForestClassifier:
     def __init__(self, n_estimators=100, max_depth=None, min_samples_split=2, min_samples_leaf=1, max_features='sqrt', bootstrap=True, random_state=None):
