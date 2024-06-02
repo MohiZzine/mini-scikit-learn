@@ -1,6 +1,5 @@
-# GradientBoostingRegressor.py
 import numpy as np
-from sklearn.base import BaseEstimator, RegressorMixin, clone
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.tree import DecisionTreeRegressor
 
 class GradientBoostingRegressor(BaseEstimator, RegressorMixin):

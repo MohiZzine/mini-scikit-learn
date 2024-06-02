@@ -4,6 +4,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeRegressor
 import numpy as np
 
+
 class GradientBoostingClassifier:
     def __init__(self, n_estimators=100, learning_rate=0.1, max_depth=3):
         self.n_estimators = n_estimators
@@ -25,6 +26,7 @@ class GradientBoostingClassifier:
     def predict(self, X):
         predictions = np.sum([self.learning_rate * model.predict(X) for model in self.models], axis=0)
         return np.round(predictions).astype(int)
+
 
 # Testing with Iris Dataset
 iris = load_iris()
