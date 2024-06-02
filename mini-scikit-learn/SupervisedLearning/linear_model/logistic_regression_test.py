@@ -6,6 +6,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression as SklearnLogisticRegression
 from sklearn.metrics import accuracy_score
 from LogisticRegression import LogisticRegression
+
+
+
 def test():
     # Load the Iris dataset
     data = load_iris()
