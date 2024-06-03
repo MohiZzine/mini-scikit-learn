@@ -26,4 +26,3 @@ print("Scikit-learn VarianceThreshold variances:", sklearn_vt.variances_)
 # Display transformed datasets
 print("Custom VarianceThreshold transformed X:\n", X_transformed)
 print("Scikit-learn VarianceThreshold transformed X:\n", sklearn_X_transformed)
-j
