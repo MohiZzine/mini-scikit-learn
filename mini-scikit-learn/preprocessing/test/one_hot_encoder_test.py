@@ -1,8 +1,13 @@
 import unittest
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder as SklearnOneHotEncoder
+import sys
+import os
 
-from one_hot_encoder import OneHotEncoder  # Update this to the correct import path
+# Ensure the parent directory is in the system path to allow package imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+from preprocessing.one_hot_encoder import OneHotEncoder
 
 class TestOneHotEncoder(unittest.TestCase):
     def setUp(self):
@@ -15,20 +20,20 @@ class TestOneHotEncoder(unittest.TestCase):
 
     def test_fit_transform(self):
         # Initialize both encoders
-        custom_encoder = OneHotEncoder(handle_unknown='ignore')
-        sklearn_encoder = SklearnOneHotEncoder(handle_unknown='ignore')
+        custom_encoder = OneHotEncoder()
+        sklearn_encoder = SklearnOneHotEncoder()
 
         # Fit and transform the data
         custom_encoded = custom_encoder.fit_transform(self.data)
         sklearn_encoded = sklearn_encoder.fit_transform(self.data)
 
         # Check if both outputs are identical
-        np.testing.assert_array_almost_equal(custom_encoded.toarray(), sklearn_encoded.toarray())
+        np.testing.assert_array_almost_equal(custom_encoded, sklearn_encoded.toarray())
 
     def test_inverse_transform(self):
         # Initialize the encoder
-        custom_encoder = OneHotEncoder(handle_unknown='ignore')
-        sklearn_encoder = SklearnOneHotEncoder(handle_unknown='ignore')
+        custom_encoder = OneHotEncoder()
+        sklearn_encoder = SklearnOneHotEncoder()
 
         # Fit and transform the data
         custom_encoder.fit(self.data)
