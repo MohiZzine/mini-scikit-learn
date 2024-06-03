@@ -10,6 +10,36 @@ class RandomForestRegressor:
                  min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None,
                  min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None,
                  verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None, monotonic_cst=None):
+        """
+        Random Forest Regressor implementation.
+
+        Parameters:
+        - n_estimators (int): Number of trees in the forest.
+        - criterion ({'squared_error'}): The function to measure the quality of a split.
+        - max_depth (int): Maximum depth of the tree.
+        - min_samples_split (int): Minimum number of samples required to split an internal node.
+        - min_samples_leaf (int): Minimum number of samples required to be at a leaf node.
+        - min_weight_fraction_leaf (float): Minimum weighted fraction of the sum total of weights (of all the input samples) required to be at a leaf node.
+        - max_features (int): Number of features to consider when looking for the best split.
+        - max_leaf_nodes (int): Grow trees with max_leaf_nodes in best-first fashion.
+        - min_impurity_decrease (float): A node will be split if this split induces a decrease of the impurity greater than or equal to this value.
+        - bootstrap (bool): Whether bootstrap samples are used when building trees.
+        - oob_score (bool): Whether to use out-of-bag samples to estimate the R^2 on unseen data.
+        - n_jobs (int): The number of jobs to run in parallel for both fit and predict. -1 means using all processors.
+        - random_state (int): Random seed for reproducibility.
+        - verbose (int): Controls the verbosity when fitting and predicting.
+        - warm_start (bool): When set to True, reuse the solution of the previous call to fit and add more estimators to the ensemble.
+        - ccp_alpha (float): Complexity parameter used for Minimal Cost-Complexity Pruning.
+        - max_samples (int or float): If bootstrap is True, the number of samples to draw from X to train each base estimator.
+                                      If None, then draw X.shape[0] samples.
+        - monotonic_cst (list): List of bool. If set to True, the feature should have a positive or negative effect on the prediction.
+
+        Attributes:
+        - estimators_ (list): The collection of fitted sub-estimators.
+        - estimators_samples_ (list): The subset of drawn samples (indices) used for fitting each estimator.
+        - oob_prediction_ (array): Prediction computed with out-of-bag estimate on the training set.
+        - oob_score_ (float): Score of the training dataset obtained using an out-of-bag estimate.
+        """
         self.n_estimators = n_estimators
         self.criterion = criterion
         self.max_depth = max_depth
@@ -34,6 +64,16 @@ class RandomForestRegressor:
         self.oob_score_ = None
 
     def fit(self, X, y):
+        """
+        Fit the model to the given training data.
+
+        Parameters:
+        - X (array-like): Input data.
+        - y (array-like): Target labels.
+
+        Returns:
+        - self: Returns an instance of self.
+        """
         n_samples, n_features = X.shape
         self.estimators_ = []
         self.estimators_samples_ = []
@@ -71,28 +111,32 @@ class RandomForestRegressor:
         
         return self
 
-    def _set_oob_score(self, X, y):
-        n_samples = X.shape[0]
-        oob_predictions = np.zeros(n_samples)
-        oob_counts = np.zeros(n_samples)
-        
-        for estimator, indices in zip(self.estimators_, self.estimators_samples_):
-            mask = np.ones(n_samples, dtype=bool)
-            mask[indices] = False
-            oob_predictions[mask] += estimator.predict(X[mask])
-            oob_counts[mask] += 1
-        
-        oob_counts[oob_counts == 0] = 1
-        self.oob_prediction_ = oob_predictions / oob_counts
-        self.oob_score_ = np.mean((y - self.oob_prediction_) ** 2)
-
     def predict(self, X):
+        """
+        Predict regression target for X.
+
+        Parameters:
+        - X (array-like): Input data.
+
+        Returns:
+        - array: Predicted values.
+        """
         predictions = np.zeros(X.shape[0])
         for estimator in self.estimators_:
             predictions += estimator.predict(X)
         return predictions / self.n_estimators
 
     def score(self, X, y):
+        """
+        Return the coefficient of determination R^2 of the prediction.
+
+        Parameters:
+        - X (array-like): Test samples.
+        - y (array-like): True labels for X.
+
+        Returns:
+        - float: R^2 of self.predict(X) wrt. y.
+        """
         y_pred = self.predict(X)
         return np.mean((y - y_pred) ** 2)
 

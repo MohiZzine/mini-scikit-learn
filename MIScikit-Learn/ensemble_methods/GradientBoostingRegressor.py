@@ -37,7 +37,10 @@ class GradientBoostingRegressor(BaseEstimator, RegressorMixin):
         -------
         self : object
         """
-        self.models = []
+        X, y = np.asarray(X), np.asarray(y)
+        if X.shape[0] != y.shape[0]:
+            raise ValueError("Mismatched number of samples between X and y")
+            self.models = []
         
         residuals = y.copy()
         self.initial_model = np.mean(y)
