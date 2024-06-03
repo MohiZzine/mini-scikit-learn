@@ -1,6 +1,6 @@
-from .base_scaler import BaseScaler
+from .base_scaler import BaseTransformer
 
-class Normalizer(BaseScaler):
+class Normalizer(BaseTransformer):
     """
     Example normalizer class.
     """

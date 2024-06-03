@@ -1,6 +1,6 @@
-from .base_imputer import BaseImputer
+from .base_imputer import BaseTransformer
 
-class Imputer(BaseImputer):
+class Imputer(BaseTransformer):
     """
     Example imputer class.
     """

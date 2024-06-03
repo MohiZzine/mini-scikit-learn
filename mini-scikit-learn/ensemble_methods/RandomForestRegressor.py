@@ -3,7 +3,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from SupervisedLearning.DecisionTrees.DecisionTreeRegressor import DecisionTreeRegressor
+from supervised_learning.decision_trees.decision_tree_regressor import DecisionTreeRegressor
 
 class RandomForestRegressor:
     def __init__(self, n_estimators=100, criterion='squared_error', max_depth=None, min_samples_split=2,

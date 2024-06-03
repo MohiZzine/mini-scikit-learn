@@ -1,6 +1,6 @@
-from .base_scaler import BaseScaler
+from .base_transformer import BaseTransformer
 
-class Scaler(BaseScaler):
+class Scaler(BaseTransformer):
     """
     Example scaler class.
     """

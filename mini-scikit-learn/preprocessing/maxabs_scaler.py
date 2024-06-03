@@ -1,7 +1,14 @@
 import numpy as np
 from scipy import sparse
 
-class MaxAbsScaler:
+import os
+import sys
+
+# Add the base module to the system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from base.base_scaler import BaseScaler
+
+class MaxAbsScaler(BaseScaler):
     """
     Scale each feature by its maximum absolute value.
 

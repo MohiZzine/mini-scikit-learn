@@ -4,16 +4,40 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeRegressor
 import numpy as np
 
-
 class GradientBoostingClassifier:
+    """
+    Gradient Boosting Classifier.
+
+    Parameters
+    ----------
+    n_estimators : int, default=100
+        The number of boosting stages to be run.
+    learning_rate : float, default=0.1
+        Learning rate shrinks the contribution of each tree.
+    max_depth : int, default=3
+        Maximum depth of the individual regression estimators.
+    """
     def __init__(self, n_estimators=100, learning_rate=0.1, max_depth=3):
         self.n_estimators = n_estimators
         self.learning_rate = learning_rate
         self.max_depth = max_depth
         self.models = []
-        self.scaling_factor = 1.0
 
     def fit(self, X, y):
+        """
+        Fit the Gradient Boosting model.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        y : array-like of shape (n_samples,)
+            Target values.
+
+        Returns
+        -------
+        self : object
+        """
         self.models = []
         residual = np.zeros_like(y, dtype=float)
         for _ in range(self.n_estimators):
@@ -24,6 +48,19 @@ class GradientBoostingClassifier:
             residual -= update
 
     def predict(self, X):
+        """
+        Predict using the Gradient Boosting model.
+
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Test data.
+
+        Returns
+        -------
+        y_pred : ndarray of shape (n_samples,)
+            Predicted values.
+        """
         predictions = np.sum([self.learning_rate * model.predict(X) for model in self.models], axis=0)
         return np.round(predictions).astype(int)
 

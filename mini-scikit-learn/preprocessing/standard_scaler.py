@@ -1,6 +1,13 @@
 import numpy as np
 
-class StandardScaler:
+import os
+import sys
+
+# Add the base module to the system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from base.scaler import Scaler
+
+class StandardScaler(Scaler):
     """
     Standardize features by removing the mean and scaling to unit variance.
 

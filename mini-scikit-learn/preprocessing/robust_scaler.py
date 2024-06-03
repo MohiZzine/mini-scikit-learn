@@ -2,7 +2,14 @@
 
 import numpy as np
 
-class RobustScaler:
+import os
+import sys
+
+# Add the base module to the system path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from base.base_scaler import BaseScaler
+
+class RobustScaler(BaseScaler):
     """
     Scale features using statistics that are robust to outliers.
 

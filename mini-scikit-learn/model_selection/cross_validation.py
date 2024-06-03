@@ -1,12 +1,41 @@
 import numpy as np
 
 class KFold:
+    """
+    K-Folds cross-validator.
+
+    Provides train/test indices to split data in train/test sets. Split dataset into k consecutive folds.
+    
+    Parameters
+    ----------
+    n_splits : int, default=5
+        Number of folds. Must be at least 2.
+    shuffle : bool, default=False
+        Whether to shuffle the data before splitting into batches.
+    random_state : int or None, default=None
+        When shuffle is True, random_state affects the ordering of the indices.
+    """
     def __init__(self, n_splits=5, shuffle=False, random_state=None):
         self.n_splits = n_splits
         self.shuffle = shuffle
         self.random_state = random_state
 
     def split(self, X):
+        """
+        Generate indices to split data into training and test set.
+        
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+            Training data.
+        
+        Yields
+        ------
+        train_indices : ndarray
+            The training set indices for that split.
+        test_indices : ndarray
+            The testing set indices for that split.
+        """
         n_samples = X.shape[0]
         indices = np.arange(n_samples)
         if self.shuffle:
@@ -30,6 +59,25 @@ class KFold:
             yield train_indices, test_indices
 
 def cross_val_score(model, X, y, cv):
+    """
+    Evaluate a score by cross-validation.
+
+    Parameters
+    ----------
+    model : estimator object
+        The object to use to fit the data.
+    X : array-like of shape (n_samples, n_features)
+        The data to fit.
+    y : array-like of shape (n_samples,)
+        The target variable to try to predict in the case of supervised learning.
+    cv : cross-validation generator
+        The cross-validation splitting strategy.
+    
+    Returns
+    -------
+    scores : ndarray of shape (n_splits,)
+        Array of scores of the estimator for each run of the cross-validation.
+    """
     scores = []
     for train_index, test_index in cv.split(X):
         X_train, X_test = X[train_index], X[test_index]
