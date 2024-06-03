@@ -1,5 +1,3 @@
-# File: preprocessing/standard_scaler.py
-
 import numpy as np
 
 class StandardScaler:

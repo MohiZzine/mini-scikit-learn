@@ -1,5 +1,3 @@
-# File: preprocessing/binarizer.py
-
 import numpy as np
 from scipy import sparse
 
@@ -75,12 +73,12 @@ class Binarizer:
         X_tr : {ndarray, sparse matrix} of shape (n_samples, n_features)
             Transformed array.
         """
-        copy = copy if copy is not None else self.copy
+        copy = self.copy if copy is None else copy
         X = self._validate_data(X, copy=copy)
         if sparse.issparse(X):
-            return self._transform_sparse(X)
+            return self._transform_sparse(X, copy=copy)
         else:
-            return self._transform_dense(X)
+            return self._transform_dense(X, copy=copy)
 
     def fit_transform(self, X, y=None, **fit_params):
         """
@@ -102,7 +100,7 @@ class Binarizer:
         X_new : ndarray of shape (n_samples, n_features_new)
             Transformed array.
         """
-        return self.fit(X, y).transform(X)
+        return self.fit(X, y).transform(X, copy=self.copy)
 
     def get_feature_names_out(self, input_features=None):
         """
@@ -185,7 +183,7 @@ class Binarizer:
             X = np.array(X, copy=copy)
         return X
 
-    def _transform_dense(self, X):
+    def _transform_dense(self, X, copy=True):
         """
         Binarize dense matrix.
 
@@ -199,9 +197,11 @@ class Binarizer:
         X_bin : ndarray of shape (n_samples, n_features)
             Binarized data.
         """
+        if copy:
+            X = X.copy()
         return np.where(X > self.threshold, 1, 0)
 
-    def _transform_sparse(self, X):
+    def _transform_sparse(self, X, copy=True):
         """
         Binarize sparse matrix.
 
@@ -215,6 +215,7 @@ class Binarizer:
         X_bin : sparse matrix of shape (n_samples, n_features)
             Binarized data.
         """
-        X_bin = X.copy()
-        X_bin.data = np.where(X_bin.data > self.threshold, 1, 0)
-        return X_bin
+        if copy:
+            X = X.copy()
+        X.data = np.where(X.data > self.threshold, 1, 0)
+        return X

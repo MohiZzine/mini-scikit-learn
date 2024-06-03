@@ -1,5 +1,3 @@
-# File: preprocessing/kbins_discretizer.py
-
 import numpy as np
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted
@@ -92,7 +90,7 @@ class KBinsDiscretizer:
                 bin_edges = np.percentile(X[:, i], quantiles)
             elif self.strategy == 'kmeans':
                 from sklearn.cluster import KMeans
-                kmeans = KMeans(n_clusters=self.n_bins_[i], random_state=self.random_state)
+                kmeans = KMeans(n_clusters=self.n_bins_[i], random_state=self.random_state, n_init='auto')
                 kmeans.fit(X[:, [i]])
                 bin_edges = np.sort(kmeans.cluster_centers_.flatten())
                 bin_edges = np.concatenate(([X[:, i].min()], bin_edges, [X[:, i].max()]))
