@@ -7,7 +7,7 @@ from sklearn.ensemble import AdaBoostClassifier as SklearnAdaBoost
 
 # Sample data for testing
 X, y = load_iris(return_X_y=True)
-y = (y == 0).astype(np.int)  # Convert to binary classification problem
+y = (y == 0).astype(int)  # Convert to binary classification problem
 
 # Split the data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
